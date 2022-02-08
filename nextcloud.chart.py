@@ -4,6 +4,7 @@
 NetData plugin for active users on Nextcloud servers.
 
 Copyright (C) 2020-2021 Arno Welzel
+Copyright (C) 2022-XXXX Leviia
 
 With contributions by Luca Olivetti and others
 
@@ -29,7 +30,10 @@ update_every = 5
 priority = 60000
 retries = 10
 
-ORDER = ['users',
+ORDER = ['cpu',
+         'memory',
+         'swap',
+         'users',
          'files',
          'storage',
          'shares',
@@ -37,6 +41,28 @@ ORDER = ['users',
          ]
 
 CHARTS = {
+    'cpu': {
+        'options': [None, 'CPU', 'cpu', 'CPU', 'nextcloud.cpu', 'line'],
+        'lines': [
+            ['cpuload0', 'cpuload0', 'absolute', 1, 100],
+            ['cpuload1', 'cpuload1', 'absolute', 1, 100],
+            ['cpuload2', 'cpuload2', 'absolute', 1, 100],
+        ]
+    },
+    'memory': {
+        'options': [None, 'Memory', 'memory', 'Memory', 'nextcloud.memory', 'line'],
+        'lines': [
+            ['mem_total', 'mem_total', 'absolute'],
+            ['mem_free', 'mem_free', 'absolute'],
+        ]
+    },
+    'swap': {
+        'options': [None, 'Swap', 'swap', 'Swap', 'nextcloud.swap', 'line'],
+        'lines': [
+            ['swap_total', 'swap_total', 'absolute'],
+            ['swap_free', 'swap_free', 'absolute'],
+        ]
+    },
     'users': {
         'options': [None, 'Users active', 'users', 'Users', 'nextcloud.active_users', 'line'],
         'lines': [
@@ -67,6 +93,8 @@ CHARTS = {
             ['num_shares_user', 'shares user', 'absolute'],
             ['num_shares_groups', 'shares groups', 'absolute'],
             ['num_shares_link', 'shares link', 'absolute'],
+            ['num_shares_mail', 'shares mail', 'absolute'],
+            ['num_shares_room', 'shares room', 'absolute'],
             ['num_shares_link_no_password', 'shares link no password', 'absolute'],
             ['num_fed_shares_sent', 'fed shares sent', 'absolute'],
             ['num_fed_shares_received', 'fed shares received', 'absolute'],
@@ -111,8 +139,14 @@ class Service(UrlService):
         try:
             j = loads(raw_data)
             data = j['ocs']['data']['activeUsers']
+            cpu = {};
+            cpu['cpuload0'] = j['ocs']['data']['nextcloud']['system']['cpuload'][0] * 100
+            cpu['cpuload1'] = j['ocs']['data']['nextcloud']['system']['cpuload'][1] * 100
+            cpu['cpuload2'] = j['ocs']['data']['nextcloud']['system']['cpuload'][2] * 100
+            data.update(cpu)
             data.update(j['ocs']['data']['nextcloud']['storage'])
             data.update(j['ocs']['data']['nextcloud']['shares'])
+            data.update(j['ocs']['data']['nextcloud']['system'])
             data.update(j['ocs']['data']['nextcloud']['system']['apps'])
             return data
         except ValueError:
