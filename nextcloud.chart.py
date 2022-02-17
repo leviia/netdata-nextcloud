@@ -26,7 +26,7 @@ from bases.FrameworkServices.UrlService import UrlService
 from json import loads
 
 # Basic plugin settings for netdata.
-update_every = 5
+update_every = 1
 priority = 60000
 retries = 10
 
